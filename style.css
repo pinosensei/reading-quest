@@ -240,3 +240,144 @@ h2 small, .region-head h2 small { display: block; margin-top: 2px; }
 .stage-card .stage-lock { margin-top: auto; font-weight: 800; font-size: .9em; color: var(--ink-soft); }
 .toast { visibility: hidden; }
 .toast.show { visibility: visible; }
+
+/* =========================================================
+   World map – painted background (Option A)
+   Label positions are % of the picture, so they always
+   stay on the right place when the screen size changes.
+   ========================================================= */
+#screen-map {
+  position: relative; padding: 0; height: 100vh; height: 100dvh; min-height: 520px;
+  overflow: hidden; display: block; background: #12204A; color: #fff;
+}
+#screen-map::before { /* blurred copy of the map fills any empty side space */
+  content: ''; position: absolute; inset: -40px;
+  background: url('img/map-small.jpg') center / cover; filter: blur(24px) brightness(.85);
+}
+.game-bar {
+  position: absolute; inset: 0 0 auto 0; z-index: 6; height: 68px;
+  display: flex; align-items: center; gap: 14px; padding: 0 16px;
+  background: linear-gradient(#26336F, #1B2558); box-shadow: 0 4px 16px rgba(0,0,0,.35);
+}
+.game-logo {
+  font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 700; font-size: 28px; line-height: 1;
+  color: #F6C453; text-shadow: 0 2px 0 #9A5B12, 0 4px 8px rgba(0,0,0,.4); white-space: nowrap;
+}
+.game-logo small { display: block; font-family: 'Nunito'; font-size: 11px; color: #FFE9B5; text-shadow: none; margin-top: 3px; letter-spacing: .5px; }
+.game-tabs { display: flex; gap: 6px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
+.game-tabs::-webkit-scrollbar { display: none; }
+.game-tab {
+  font: inherit; font-size: 15px; font-weight: 800; border: none; cursor: pointer; white-space: nowrap;
+  min-height: 44px; padding: 0 14px; border-radius: 999px; color: #DDE3FF; background: rgba(255,255,255,.08);
+  display: flex; align-items: center; gap: 6px;
+}
+.game-tab.on { background: linear-gradient(#FFD877, #F0B33C); color: #4A2E05; box-shadow: 0 3px 0 #B57A14; }
+.game-bar-right { display: flex; align-items: center; gap: 8px; }
+.coin-pill { background: rgba(255,255,255,.1); border-radius: 999px; padding: 8px 14px; font-weight: 900; white-space: nowrap; }
+.round-btn {
+  width: 46px; height: 46px; border-radius: 50%; cursor: pointer; font-size: 21px;
+  background: rgba(255,255,255,.1); border: 2px solid rgba(255,255,255,.3);
+}
+
+/* the map itself */
+.map-viewport {
+  position: absolute; inset: 68px 0 0 0; z-index: 1;
+  display: flex; justify-content: center; align-items: center;
+  overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.map-viewport::-webkit-scrollbar { display: none; }
+.map-stage {
+  position: relative; flex: none;
+  aspect-ratio: 1672 / 941;
+  width: min(100vw, (100dvh - 68px) * 1.7768);
+  background: url('img/map.jpg') center / 100% 100% no-repeat;
+  box-shadow: 0 0 40px rgba(0,0,0,.35);
+}
+
+/* region labels */
+.region-spot {
+  position: absolute; transform: translate(-50%, -50%); z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: none; border: none; padding: 0; font: inherit; cursor: pointer;
+}
+.region-label {
+  display: flex; align-items: center; white-space: nowrap;
+  background: linear-gradient(#FFF6DF, #F0DCA8); color: #3A2A18; border-radius: 14px;
+  padding: 4px 18px 4px 4px; font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 600; font-size: 20px;
+  box-shadow: 0 4px 0 #BC9A58, 0 8px 14px rgba(0,0,0,.35);
+}
+.region-num {
+  width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; margin-right: 10px;
+  background: #1F4D3A; color: #fff; border: 3px solid #FFF6DF; box-shadow: 0 0 0 2px #1F4D3A; font-size: 19px;
+}
+.region-sub { background: rgba(20,30,70,.85); color: #fff; padding: 3px 14px; border-radius: 999px; font-weight: 900; font-size: 14px; }
+.region-spot.open .region-label { animation: labelBob 2.6s ease-in-out infinite; }
+.region-spot.locked .region-label { filter: saturate(.35) brightness(.92); }
+.region-spot.locked .region-num { background: #565C72; box-shadow: 0 0 0 2px #565C72; }
+@keyframes labelBob { 50% { transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .region-spot.open .region-label { animation: none; } }
+
+/* overlays */
+.player-card {
+  position: absolute; left: 16px; top: 84px; z-index: 5; display: flex; align-items: center; gap: 12px;
+  background: rgba(24,34,84,.88); border: 2px solid rgba(255,255,255,.2); border-radius: 18px;
+  padding: 8px 16px 8px 8px; box-shadow: 0 6px 18px rgba(0,0,0,.3);
+}
+.pc-avatar { width: 60px; height: 60px; border-radius: 50%; overflow: hidden; background: #FDEFD6; border: 3px solid #F6C453; }
+.pc-avatar svg { width: 100%; height: 100%; display: block; }
+.pc-info b { font-size: 18px; }
+.pc-level { color: #F6C453; font-weight: 900; }
+.pc-xp { width: 150px; height: 10px; border-radius: 99px; background: rgba(255,255,255,.15); overflow: hidden; margin-top: 6px; }
+.pc-xp i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #5EE2E8, #A58BFF); transition: width .6s; }
+.pc-xpnum { font-size: 12px; color: #C9D2FF; margin-top: 2px; }
+
+.map-banner { position: absolute; left: 50%; top: 82px; transform: translateX(-50%); z-index: 4; text-align: center; pointer-events: none; }
+.map-ribbon {
+  position: relative; display: inline-block; color: #3A2A18; padding: 6px 44px 8px; border-radius: 8px;
+  background: linear-gradient(#FFF4DA, #F1DDAA); font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 700; font-size: 28px;
+  box-shadow: 0 4px 0 #C9A764, 0 8px 16px rgba(0,0,0,.25);
+}
+.map-banner p { margin: 6px 0 0; font-weight: 800; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,.6); }
+.map-banner p small { color: #FFE9B5; }
+
+.daily-card {
+  position: absolute; right: 16px; bottom: 16px; z-index: 5; width: 270px; color: #3A2A18;
+  background: linear-gradient(#FFF5DC, #F3E0B2); border-radius: 14px; padding: 12px 16px;
+  box-shadow: 0 5px 0 #C6A462, 0 10px 20px rgba(0,0,0,.3);
+}
+.daily-card h3 { margin: 0 0 8px; font-family: 'Fredoka', 'Nunito', sans-serif; font-size: 19px; }
+.daily-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; border-top: 2px dashed #DCC28A; padding-top: 8px; }
+.daily-reward { text-align: center; margin-top: 6px; font-weight: 900; font-size: 13px; color: #5B3D9E; }
+
+/* tablets in portrait / small laptops */
+@media (max-width: 1000px) {
+  .game-tab span { display: none; }
+  .game-tab { padding: 0 12px; }
+  .map-banner { display: none; }
+}
+/* phones: the map becomes swipe-able left/right */
+@media (max-width: 700px) {
+  .game-bar { gap: 8px; padding: 0 10px; }
+  .game-logo { font-size: 20px; } .game-logo small { display: none; }
+  .coin-pill { padding: 6px 10px; font-size: 14px; }
+  .game-tab { min-height: 40px; padding: 0 9px; }
+  .map-viewport { justify-content: flex-start; }
+  .map-stage { width: auto; height: 100%; }
+  .player-card { top: 78px; left: 10px; padding: 5px 10px 5px 5px; }
+  .pc-avatar { width: 42px; height: 42px; } .pc-xp { width: 96px; }
+  .region-label { font-size: 15px; padding: 3px 12px 3px 3px; }
+  .region-num { width: 28px; height: 28px; font-size: 14px; margin-right: 6px; }
+  .daily-card { left: 10px; right: 10px; bottom: 10px; width: auto; padding: 8px 12px; }
+  .daily-card h3 { font-size: 15px; margin-bottom: 4px; } .daily-reward { display: none; }
+}
+@media (max-width: 420px) { .game-logo { display: none; } .game-tabs { margin-left: 0; } }
+.daily-card h3 small { display: block; font-size: .62em; margin-top: 1px; }
+.swipe-hint { display: none; }
+@media (max-width: 700px) {
+  .swipe-hint {
+    display: block; position: absolute; left: 50%; bottom: 74px; transform: translateX(-50%); z-index: 5;
+    background: rgba(20,30,70,.8); padding: 4px 14px; border-radius: 999px; font-weight: 800; font-size: 13px; pointer-events: none;
+  }
+}
+@media (max-width: 1200px) { .game-tab span { display: none; } .game-tab { padding: 0 12px; } }
+.swipe-hint { white-space: nowrap; }

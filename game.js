@@ -186,47 +186,20 @@
     openMap();
   };
 
-  // ---------------- World map ----------------
-  // Spot positions in % of the map (zig-zag path from bottom to top)
+  // ---------------- World map (painted picture: img/map.jpg) ----------------
+  // x / y = where the label sits, in % of the picture. Move them here if needed.
   const SPOTS = {
-    village:  { x: 22, y: 80, icon: '🏡' },
-    forest:   { x: 72, y: 66, icon: '🌳' },
-    mountain: { x: 28, y: 40, icon: '⛰️' },
-    castle:   { x: 74, y: 18, icon: '🏰' }
+    village:  { x: 31, y: 37 },   // cottage + windmill
+    forest:   { x: 53, y: 58 },   // palm-tree island with ruins
+    mountain: { x: 82, y: 52 },   // volcano mountains
+    castle:   { x: 80, y: 27 }    // snowy castle
   };
 
-  const MAP_SVG = `
-  <svg viewBox="0 0 400 300" preserveAspectRatio="none" aria-hidden="true">
-    <rect width="400" height="300" fill="#BFE6F5"/>
-    <path d="M30 290 Q10 200 40 150 Q20 80 80 50 Q120 10 220 20 Q330 10 370 60 Q395 120 370 180 Q395 250 340 290Z" fill="#CDE8A8"/>
-    <path d="M44 280 Q28 200 54 155 Q38 90 92 62 Q130 30 220 34 Q320 26 356 70 Q378 125 356 182 Q376 245 330 280Z" fill="#B8DE8C"/>
-    <path d="M88 240 Q180 240 288 198 Q200 160 112 120 Q200 80 296 54" fill="none" stroke="#F3E3BC" stroke-width="12" stroke-linecap="round"/>
-    <path d="M88 240 Q180 240 288 198 Q200 160 112 120 Q200 80 296 54" fill="none" stroke="#E3CB92" stroke-width="2.5" stroke-dasharray="6 8" stroke-linecap="round"/>
-    <!-- village houses -->
-    <g transform="translate(48 210)">
-      <rect x="0" y="12" width="18" height="14" fill="#FFF1DC"/><path d="M-3 13 L9 2 L21 13Z" fill="#E56F22"/>
-      <rect x="24" y="16" width="16" height="12" fill="#FFF1DC"/><path d="M21 17 L32 7 L43 17Z" fill="#4A90E2"/>
-    </g>
-    <!-- forest -->
-    <g fill="#2E8B57">
-      <circle cx="318" cy="222" r="12"/><circle cx="336" cy="214" r="14"/><circle cx="352" cy="226" r="11"/>
-      <circle cx="300" cy="234" r="10"/><circle cx="330" cy="238" r="12"/>
-    </g>
-    <!-- mountain -->
-    <path d="M60 140 L100 76 L128 112 L146 90 L184 140Z" fill="#9AAFCB"/>
-    <path d="M88 96 L100 76 L112 92 L104 90 L98 98Z" fill="#fff"/>
-    <!-- castle -->
-    <g transform="translate(322 20)">
-      <rect x="0" y="14" width="40" height="26" fill="#D9CCF2"/>
-      <rect x="-6" y="6" width="12" height="34" fill="#C7B6EC"/><rect x="34" y="6" width="12" height="34" fill="#C7B6EC"/>
-      <path d="M-8 7 L0 -4 L8 7Z" fill="#8E6CDB"/><path d="M32 7 L40 -4 L48 7Z" fill="#8E6CDB"/>
-      <rect x="15" y="26" width="10" height="14" rx="5" fill="#8E6CDB"/>
-    </g>
-    <!-- waves -->
-    <g stroke="#fff" stroke-width="2" fill="none" opacity=".7" stroke-linecap="round">
-      <path d="M10 40 q6 -5 12 0 q6 5 12 0"/><path d="M370 260 q6 -5 12 0 q6 5 12 0"/><path d="M8 250 q6 -5 12 0"/>
-    </g>
-  </svg>`;
+  // XP / level are worked out from stars (nothing extra is saved):
+  // 1 star = 10 XP, every 100 XP = 1 level.
+  function playerXP() {
+    return REGIONS.reduce((sum, r) => sum + S.regionStars(r.id), 0) * 10;
+  }
 
   function openMap() {
     const st = S.get();
@@ -234,26 +207,37 @@
     $('top-avatar').innerHTML = avatarSVG(st.player.avatar);
     $('top-name').textContent = st.player.name;
     $('top-coins').textContent = st.coins.toLocaleString();
+    const xp = playerXP();
+    $('top-level').textContent = Math.floor(xp / 100) + 1;
+    $('top-xp').textContent = `${xp % 100} / 100`;
+    $('top-xpbar').style.width = (xp % 100) + '%';
 
-    let html = MAP_SVG;
-    REGIONS.forEach((r) => {
-      const p = SPOTS[r.id]; if (!p) return;
+    $('world-map').innerHTML = REGIONS.map((r, i) => {
+      const p = SPOTS[r.id]; if (!p) return '';
       const max = r.stages.length * 3;
-      const sub = r.open
-        ? `<span class="spot-stars">⭐ ${S.regionStars(r.id)} / ${max}</span>`
-        : `<span class="spot-stars">🔒 Coming soon</span>`;
-      html += `<button class="map-spot ${r.open ? 'open' : 'locked'}" data-id="${r.id}"
-        style="left:${p.x}%;top:${p.y}%;--spot-color:${r.color}">
-        <span>${p.icon}</span><b>${r.name}</b>${sub}</button>`;
-    });
-    $('world-map').innerHTML = html;
+      const sub = r.open ? `⭐ ${S.regionStars(r.id)} / ${max}` : '🔒 Locked';
+      return `<button class="region-spot ${r.open ? 'open' : 'locked'}" data-id="${r.id}" style="left:${p.x}%;top:${p.y}%">
+        <span class="region-label"><span class="region-num">${i + 1}</span>${escapeHTML(r.name)}</span>
+        <span class="region-sub">${sub}</span></button>`;
+    }).join('');
     show('screen-map');
+    // Phones: the map is wider than the screen, so scroll to the newest open region
+    const vp = $('map-viewport'), stage = $('world-map');
+    if (stage.offsetWidth > vp.clientWidth) {
+      const last = [...REGIONS].reverse().find((r) => r.open && SPOTS[r.id]);
+      const x = last ? SPOTS[last.id].x / 100 : 0.3;
+      vp.scrollLeft = stage.offsetWidth * x - vp.clientWidth / 2;
+    }
   }
   $('world-map').onclick = (e) => {
-    const b = e.target.closest('.map-spot'); if (!b) return;
+    const b = e.target.closest('.region-spot'); if (!b) return;
     const r = REGIONS.find((x) => x.id === b.dataset.id);
     if (!r.open) { toast(`${r.name} is coming soon! もうすぐオープン！`); return; }
     openRegion(r.id);
+  };
+  document.querySelector('.game-tabs').onclick = (e) => {
+    const b = e.target.closest('.game-tab'); if (!b || b.dataset.tab === 'map') return;
+    toast('🛠️ Coming soon! もうすぐ追加します。');
   };
 
   // ---------------- Region ----------------
