@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Reading Quest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ============ TITLE ============ -->
+  <section id="screen-title" class="screen">
+    <div class="title-card">
+      <div class="title-badge">📖</div>
+      <h1 class="title-logo">Reading <span>Quest</span></h1>
+      <p class="title-sub">よんで・かいて・ぼうけんしよう！</p>
+      <div class="title-buttons">
+        <button id="btn-continue" class="btn btn-primary btn-big hidden">Continue <small>つづきから</small></button>
+        <button id="btn-new" class="btn btn-primary btn-big">Start <small>はじめる</small></button>
+      </div>
+      <p class="title-foot">by Pino Sensei</p>
+    </div>
+    <p id="storage-warning" class="warning hidden">
+      ⚠️ This browser can't save progress (private mode or cookies blocked).<br>
+      このブラウザでは記録が保存されません。
+    </p>
+  </section>
+
+  <!-- ============ PLAYER SETUP ============ -->
+  <section id="screen-setup" class="screen hidden">
+    <div class="panel setup-panel">
+      <h2>Make your player <small>プレーヤーをつくろう</small></h2>
+
+      <label class="field-label" for="input-name">1. Your name <small>なまえ（ローマ字）</small></label>
+      <input id="input-name" class="text-input" maxlength="12" autocomplete="off" placeholder="e.g. Yuki">
+
+      <p class="field-label">2. Choose your character <small>キャラクター</small></p>
+      <div id="avatar-grid" class="avatar-grid"></div>
+
+      <p class="field-label">3. Where do you start? <small>レベル</small></p>
+      <div id="level-grid" class="level-grid"></div>
+
+      <p id="setup-error" class="error hidden"></p>
+      <button id="btn-setup-done" class="btn btn-primary btn-big">Let's go! <small>しゅっぱつ</small></button>
+    </div>
+  </section>
+
+  <!-- ============ WORLD MAP ============ -->
+  <section id="screen-map" class="screen hidden">
+    <header class="topbar">
+      <div class="player-chip">
+        <div id="top-avatar" class="mini-avatar"></div>
+        <span id="top-name"></span>
+      </div>
+      <div class="topbar-right">
+        <div class="coin-chip">🪙 <span id="top-coins">0</span></div>
+        <button class="icon-btn js-open-settings" aria-label="Settings">⚙️</button>
+      </div>
+    </header>
+    <div class="map-wrap">
+      <div id="world-map" class="world-map"></div>
+    </div>
+  </section>
+
+  <!-- ============ REGION ============ -->
+  <section id="screen-region" class="screen hidden">
+    <header class="topbar">
+      <button id="btn-back-map" class="btn btn-ghost">← Map <small>マップ</small></button>
+      <div class="topbar-right">
+        <div class="coin-chip">🪙 <span class="js-coins">0</span></div>
+        <button class="icon-btn js-open-settings" aria-label="Settings">⚙️</button>
+      </div>
+    </header>
+    <div class="region-head">
+      <h2 id="region-title"></h2>
+      <p id="region-skill"></p>
+      <div class="star-total">⭐ <span id="region-stars">0</span></div>
+    </div>
+    <div id="stage-list" class="stage-list"></div>
+  </section>
+
+  <!-- ============ SETTINGS (modal) ============ -->
+  <div id="modal-settings" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <button class="modal-x js-close-modal" aria-label="Close">×</button>
+      <h2>Settings <small>せってい</small></h2>
+
+      <div class="setting-row">
+        <span>🔊 Sound <small>おと</small></span>
+        <div class="seg" data-setting="sound">
+          <button data-value="true">ON</button><button data-value="false">OFF</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span>🗣️ Voice speed <small>こえのはやさ</small></span>
+        <div class="seg" data-setting="voiceSpeed">
+          <button data-value="slow">Slow</button><button data-value="normal">Normal</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span>🇯🇵 Japanese hints <small>日本語ヒント</small></span>
+        <div class="seg" data-setting="jpHints">
+          <button data-value="true">ON</button><button data-value="false">OFF</button>
+        </div>
+      </div>
+      <div class="setting-row">
+        <span>🔠 Text size <small>もじのおおきさ</small></span>
+        <div class="seg" data-setting="textSize">
+          <button data-value="normal">Normal</button><button data-value="large">Large</button>
+        </div>
+      </div>
+      <button id="btn-test-voice" class="btn btn-ghost">▶ Test voice <small>こえをためす</small></button>
+
+      <hr>
+      <h3>Save backup <small>きろくのバックアップ</small></h3>
+      <div class="backup-buttons">
+        <button id="btn-download" class="btn btn-secondary">⬇ Download save file</button>
+        <label class="btn btn-secondary file-btn">⬆ Load save file
+          <input id="input-file" type="file" accept=".txt,text/plain">
+        </label>
+        <button id="btn-show-code" class="btn btn-secondary">📋 Show code</button>
+        <button id="btn-enter-code" class="btn btn-secondary">⌨ Enter code</button>
+      </div>
+      <textarea id="code-box" class="code-box hidden" rows="4" spellcheck="false"></textarea>
+      <div id="code-actions" class="code-actions hidden">
+        <button id="btn-copy-code" class="btn btn-ghost">Copy</button>
+        <button id="btn-load-code" class="btn btn-primary">Load this code</button>
+      </div>
+      <p id="backup-msg" class="small-msg"></p>
+
+      <hr>
+      <button id="btn-reset" class="btn btn-danger">Delete my Reading Quest save <small>きろくをけす</small></button>
+    </div>
+  </div>
+
+  <!-- ============ CONFIRM (modal) ============ -->
+  <div id="modal-confirm" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box modal-small">
+      <p id="confirm-text"></p>
+      <div class="confirm-buttons">
+        <button id="confirm-no" class="btn btn-ghost">Cancel <small>やめる</small></button>
+        <button id="confirm-yes" class="btn btn-danger">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="content/regions.js"></script>
+  <script src="save.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
