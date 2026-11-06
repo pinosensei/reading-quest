@@ -6,6 +6,22 @@
   const S = window.RQSave;
   const REGIONS = window.RQ_REGIONS;
 
+  // Show any unexpected error on screen (helps fix problems on school tablets)
+  function showFatal(text) {
+    let box = document.getElementById('fatal-box');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'fatal-box';
+      box.style.cssText = 'position:fixed;left:12px;right:12px;top:12px;z-index:99;background:#FDECEC;color:#B4232A;border:2px solid #E5484D;border-radius:14px;padding:12px 16px;font-weight:800;font-family:sans-serif;white-space:pre-wrap';
+      document.body.appendChild(box);
+    }
+    box.textContent = '⚠️ ' + text;
+  }
+  window.addEventListener('error', (e) => showFatal('Error: ' + e.message + (e.filename ? '\n' + e.filename.split('/').pop() + ' line ' + e.lineno : '')));
+  if (!Array.isArray(REGIONS)) {
+    showFatal('content/regions.js was not found.\nCheck that the "content" folder (with regions.js inside) is uploaded to GitHub.');
+  }
+
   // ---------------- Original avatars (drawn in code) ----------------
   const AVATARS = [
     { id: 'kai',  name: 'Kai',  type: 'boy',  hair: 'short',   hairColor: '#2B2A33', skin: '#F6D3B3', shirt: '#4A90E2' },
@@ -164,6 +180,7 @@
     else if (!pick.avatar) err = 'Choose a character! キャラクターをえらんでね。';
     else if (!pick.level) err = 'Choose your level! レベルをえらんでね。';
     if (err) { $('setup-error').textContent = err; $('setup-error').classList.remove('hidden'); return; }
+    $('setup-error').classList.add('hidden');
     S.setPlayer({ name, avatar: pick.avatar, startLevel: pick.level });
     speak('Welcome, ' + name + '!');
     openMap();
