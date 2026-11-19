@@ -115,6 +115,17 @@
     setSetting(name, value) { state.settings[name] = value; write(); },
     addCoins(n) { state.coins = Math.max(0, state.coins + Math.floor(n)); write(); },
 
+    // Weak words: things a student got wrong (used later by the Review Cave).
+    // item = { key, en, jp, kind } – the newest 150 are kept.
+    addWeak(item) {
+      if (!item || !item.key) return;
+      const list = state.weakWords.filter((w) => w.key !== item.key);
+      const old = state.weakWords.find((w) => w.key === item.key);
+      list.push(Object.assign({}, item, { misses: (old ? old.misses : 0) + 1, last: Date.now() }));
+      state.weakWords = list.slice(-150);
+      write();
+    },
+
     getStage(regionId, stageId) {
       return (state.progress[regionId] || {})[stageId] || null;
     },

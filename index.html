@@ -108,6 +108,40 @@
     <div id="stage-list" class="stage-list"></div>
   </section>
 
+  <!-- ============ PLAY (one stage) ============ -->
+  <section id="screen-play" class="screen hidden">
+    <header class="play-bar">
+      <button id="btn-quit" class="round-btn light" aria-label="Quit">✕</button>
+      <div class="play-progress"><i id="play-bar-fill"></i></div>
+      <span id="play-count" class="play-count">1 / 10</span>
+    </header>
+    <div class="play-card">
+      <p id="play-stage-name" class="play-stage-name"></p>
+      <h2 id="play-instruction" class="play-instruction"></h2>
+      <p id="play-instruction-jp" class="play-instruction-jp"></p>
+      <div id="play-prompt" class="play-prompt"></div>
+      <button id="btn-listen" class="listen-btn hidden">🔊 <span>Listen</span></button>
+      <div id="play-choices" class="play-choices"></div>
+      <p id="play-feedback" class="play-feedback"></p>
+    </div>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section id="screen-result" class="screen hidden">
+    <div class="result-card">
+      <p id="result-stage" class="play-stage-name"></p>
+      <h2 id="result-title" class="result-title"></h2>
+      <div id="result-stars" class="result-stars"></div>
+      <p id="result-detail" class="result-detail"></p>
+      <div id="result-coins" class="result-coins"></div>
+      <div class="result-buttons">
+        <button id="btn-next-stage" class="btn btn-primary btn-big">Next stage ▶ <small>つぎへ</small></button>
+        <button id="btn-retry" class="btn btn-secondary btn-big">🔁 Try again <small>もういちど</small></button>
+        <button id="btn-to-stages" class="btn btn-ghost">Stage list <small>ステージいちらん</small></button>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ SETTINGS (modal) ============ -->
   <div id="modal-settings" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-box">
@@ -176,7 +210,10 @@
   <div id="toast" class="toast"></div>
 
   <script src="content/regions.js"></script>
+  <script src="content/words.js"></script>
   <script src="save.js"></script>
   <script src="game.js"></script>
+  <script src="stages.js"></script>
+  <script src="engine.js"></script>
 </body>
 </html>

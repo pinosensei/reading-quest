@@ -278,8 +278,7 @@
     const b = e.target.closest('.stage-card'); if (!b) return;
     const i = +b.dataset.index;
     if (!isStageOpen(currentRegion, i)) { toast('Clear the stage before this one first! まえのステージをクリアしよう！'); return; }
-    // Step 2 will start the real game here.
-    toast('🛠️ Games arrive in Step 2! ゲームはステップ2で追加します。');
+    window.RQPlay.start(currentRegion.id, currentRegion.stages[i].id);
   };
   $('btn-back-map').onclick = () => openMap();
 
@@ -377,6 +376,13 @@
 
   // Some browsers load voices late
   if ('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => {};
+
+  // ---------------- Shared helpers for engine.js ----------------
+  window.RQApp = {
+    show, toast, speak, confirmBox, escapeHTML, starsHTML, isStageOpen,
+    openMap,
+    openRegion: (id) => openRegion(id || (currentRegion && currentRegion.id))
+  };
 
   // ---------------- Start ----------------
   applySettings();
