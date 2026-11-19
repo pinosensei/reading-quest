@@ -76,7 +76,7 @@
     const canSay = q.kind === 'listen' && q.say;
     $('btn-listen').classList.toggle('hidden', !canSay);
 
-    $('play-choices').className = 'play-choices' + (q.big ? ' big' : '');
+    $('play-choices').className = 'play-choices' + (q.big ? ' big' : '') + (q.pics ? ' pics' : '');
     $('play-choices').innerHTML = q.choices.map((c) =>
       `<button class="choice-btn" data-value="${APP.escapeHTML(c)}">${APP.escapeHTML(c)}</button>`).join('');
 
@@ -99,7 +99,8 @@
       const praise = ['Great!', 'Nice!', 'Good job!', 'Perfect!', 'Yes!'][Math.floor(Math.random() * 5)];
       $('play-feedback').textContent = run.missedThis ? 'OK! ⭕' : praise + ' ⭕';
       $('play-feedback').className = 'play-feedback good';
-      setTimeout(next, run.missedThis ? 900 : 750);
+      if (q.sayOnCorrect) APP.speak(q.sayOnCorrect);
+      setTimeout(next, q.sayOnCorrect ? 1100 : run.missedThis ? 900 : 750);
     } else {
       // wrong: count ONE mistake per question, show the answer, then move on
       btn.classList.add('wrong');
@@ -113,7 +114,8 @@
       const right = [...document.querySelectorAll('.choice-btn')].find((b) => b.dataset.value === q.answer);
       setTimeout(() => {
         right.classList.add('show-answer');
-        $('play-feedback').textContent = `The answer is "${q.answer}". こたえは「${q.answer}」`;
+        const shown = q.reveal || q.answer;
+        $('play-feedback').textContent = `The answer is "${shown}". こたえは「${shown}」`;
         $('play-feedback').className = 'play-feedback bad';
         if (q.say) APP.speak(q.say);
       }, 350);

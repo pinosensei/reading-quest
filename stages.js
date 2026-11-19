@@ -126,9 +126,108 @@
     return qs.slice(0, canListen ? 4 : 0).concat(shuffle(qs.slice(canListen ? 4 : 0)));
   }
 
+  // ---------- Picture words for Stage 2 & 3 ----------
+  // Starter words with a clear picture, one simple word, and a first
+  // letter that makes its usual sound (no ch/sh/th/ph/wh/kn/wr starts).
+  const PIC_THEMES = ['animals', 'food', 'school', 'things', 'body'];
+  const ODD_START = /^(ch|sh|th|ph|wh|kn|wr)/;
+  const ODD_WORDS = ['eye', 'ear', 'owl', 'onion', 'one', 'eight', 'head'];
+  function pictureWords() {
+    const seenPic = new Set();
+    return window.RQWords.list('starter').filter((w) => {
+      if (!PIC_THEMES.includes(w.theme) || !w.pic) return false;
+      if (!/^[a-z]+$/.test(w.en) || ODD_START.test(w.en) || ODD_WORDS.includes(w.en)) return false;
+      if (seenPic.has(w.pic)) return false;   // no two words with the same picture
+      seenPic.add(w.pic);
+      return true;
+    });
+  }
+  // Pick n words, at most 2 starting with the same letter
+  function pickWords(words, n) {
+    const out = [], perLetter = {};
+    shuffle(words).forEach((w) => {
+      const f = w.en[0];
+      if (out.length < n && (perLetter[f] || 0) < 2) { out.push(w); perLetter[f] = (perLetter[f] || 0) + 1; }
+    });
+    return out;
+  }
+  const weakWord = (w) => ({ key: 'word:' + w.en, en: w.en, jp: w.jp, kind: 'word' });
+
+  // ---------- Stage 2: Sound Match ----------
+  // Hear a word -> tap its picture. Q1–8: the other pictures start with
+  // different letters. Q9–12 (harder): one picture starts the SAME way
+  // (cat / cake), so students must listen to the whole word.
+  // If sound is OFF: read the word -> tap the picture.
+  function soundMatch(opts) {
+    const all = pictureWords();
+    return pickWords(all, 12).map((w, i) => {
+      const hard = i >= 8;
+      const same = shuffle(all.filter((x) => x.en !== w.en && x.en[0] === w.en[0]));
+      const diff = shuffle(all.filter((x) => x.en[0] !== w.en[0]));
+      const wrong = [];
+      if (hard && same.length) wrong.push(same[0]);
+      diff.forEach((x) => {
+        if (wrong.length < 3 && !wrong.some((y) => y.en[0] === x.en[0])) wrong.push(x);
+      });
+      const choices = shuffle([w].concat(wrong)).map((x) => x.pic);
+      return opts.sound ? {
+        kind: 'listen',
+        say: w.en,
+        instruction: hard ? 'Listen carefully! Tap the picture.' : 'Listen and tap the picture.',
+        instructionJp: hard ? 'よくきいて、絵をタップしよう。' : 'きいて、絵をタップしよう。',
+        prompt: '<div class="prompt-ear">👂</div>',
+        choices, answer: w.pic, pics: true,
+        reveal: `${w.pic} ${w.en}`,
+        weak: weakWord(w)
+      } : {
+        kind: 'look',
+        instruction: 'Read and tap the picture.',
+        instructionJp: 'よんで、絵をタップしよう。',
+        prompt: `<div class="prompt-word">${w.en}</div>`,
+        choices, answer: w.pic, pics: true,
+        reveal: `${w.pic} ${w.en}`,
+        weak: weakWord(w)
+      };
+    });
+  }
+
+  // ---------- Stage 3: First Sounds ----------
+  // See a picture (and hear the word) -> tap its first letter.
+  // Wrong letters are ones that SOUND close (b/d/p, m/n, f/v ...).
+  const SOUND_GROUPS = [
+    ['b', 'd', 'p'], ['m', 'n'], ['f', 'v', 'h'], ['s', 'z'], ['g', 'k', 'j'],
+    ['t', 'd'], ['r', 'l'], ['w', 'y', 'r'], ['c', 'g'], ['a', 'e', 'i', 'o', 'u']
+  ];
+  // letters that make the SAME sound must never be a wrong answer
+  const SAME_SOUND = { c: ['k', 'q'], k: ['c', 'q'] };
+  function firstSounds(opts) {
+    const lower = ABC.map((x) => x.toLowerCase());
+    return pickWords(pictureWords(), 12).map((w) => {
+      const f = w.en[0];
+      const banned = SAME_SOUND[f] || [];
+      const tricky = [].concat(...SOUND_GROUPS.filter((g) => g.includes(f)));
+      const choices = makeChoices(f,
+        tricky.filter((x) => !banned.includes(x)),
+        lower.filter((x) => !banned.includes(x)));
+      return {
+        kind: opts.sound ? 'listen' : 'look',
+        say: w.en,
+        sayOnCorrect: opts.sound ? w.en : '',
+        instruction: 'What is the first letter?',
+        instructionJp: 'さいしょのもじはどれ？',
+        prompt: `<div class="prompt-pic">${w.pic}</div>`,
+        choices, answer: f, big: true,
+        reveal: `${f} – ${w.en}`,
+        weak: weakWord(w)
+      };
+    });
+  }
+
   window.RQ_STAGES = {
-    v1: letterFriends
-    // v2 Sound Match, v3 First Sounds ... arrive in the next steps
+    v1: letterFriends,
+    v2: soundMatch,
+    v3: firstSounds
+    // v4 Build a Word ... arrives in the next step
   };
   window.RQStageHelpers = { shuffle, makeChoices, LETTER_SAY, ABC };
 })();
