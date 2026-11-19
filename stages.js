@@ -262,12 +262,88 @@
     });
   }
 
+  // ---------- Stage 5: Quick Words ----------
+  // A word flashes for a short time, then hides -> tap the same word
+  // from 4 look-alikes. Uses the student's chosen level.
+  // Show time: Q1–4 2.5s, Q5–8 2.0s, Q9–12 1.5s (+ a little for long words).
+
+  // Real English words used ONLY as look-alike wrong answers
+  const LOOK_ALIKE_WORDS = (
+    'bat bad bag big bug bed bet bit but bus bun cab can cap cut cot cub dad den dig dim dot dug fan fat fin fit fog fun fur ' +
+    'gas gum hen hit hop hot hug hut jam jet job jog kid kit lid lip log lot man mat men mix mop mud net nut pan pat pet pig pin ' +
+    'pit pot rag ram rat rip rod rub rug sad sat sit six tag tan ten tip top tub van vet web wet win zip ' +
+    'bake bike book boot boat coat goat card cart core cord cold cool dish wish fast last list lift fill hill bill pill will ' +
+    'wall tall talk walk mild mind kind find fine line note nose rose hose home hope hole pole bear beer pear deer door ' +
+    'rain ruin ride rice race mice nice milk silk sock rock duck luck fork form farm star stir stop step ship shop ' +
+    'chair cheer clock click black block bread broad tree three train trail snack snake shake mouse house horse ' +
+    'apple ample lemon melon peach beach teach tiger timer paper piper water later lunch bunch money monkey ' +
+    'flower flour floor tower power river rover sister mister winter window wonder wander summer simmer dinner diner ' +
+    'number member remember famous family farmer fancy careful colorful country counter weather whether ' +
+    'library literary liberty lately lightly station stations nation motion museum medium hospital hostile ' +
+    'beautiful beauty interest interesting important impossible possible popular poster delicious difficult different ' +
+    'passport support airport ticket pocket rocket volunteer festival forest concert concern contest content ' +
+    'environment equipment experience experiment energy enemy culture capture language luggage technology ' +
+    'tradition traditional addition condition solution pollution population information invitation opinion onion ' +
+    'protect project produce reduce develop envelope discover discuss create crate respect respond support suppose ' +
+    'improve approve communicate community international national necessary natural serious similar various valuable'
+  ).split(' ');
+
+  // How alike two words look (higher = more alike)
+  function alike(a, b) {
+    if (a === b) return -1;
+    let score = 0;
+    if (a[0] === b[0]) score += 3;
+    if (a[a.length - 1] === b[b.length - 1]) score += 1;
+    score -= Math.abs(a.length - b.length) * 1.2;
+    // shared letters in the same position
+    for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] === b[i]) score += 1;
+    // shared start (2-3 letters)
+    if (a.slice(0, 2) === b.slice(0, 2)) score += 1.5;
+    if (a.slice(0, 3) === b.slice(0, 3)) score += 1.5;
+    return score;
+  }
+
+  function quickWords(opts) {
+    const level = opts.level || 'starter';
+    const words = window.RQWords.list(level).filter((w) => /^[a-z]+$/.test(w.en));
+    const allWords = ['starter', 'lv1', 'lv2', 'lv3']
+      .flatMap((l) => window.RQWords.list(l).map((w) => w.en))
+      .filter((w) => /^[a-z]+$/.test(w));
+    const pool = Array.from(new Set(allWords.concat(LOOK_ALIKE_WORDS)));
+
+    return shuffle(words).slice(0, 12).map((w, i) => {
+      // best 6 look-alikes, then pick 3 of them at random so games differ
+      const best = pool
+        .filter((x) => x !== w.en)
+        .map((x) => ({ x, s: alike(w.en, x) + Math.random() }))
+        .sort((p, q) => q.s - p.s)
+        .slice(0, 6).map((p) => p.x);
+      const choices = shuffle([w.en].concat(shuffle(best).slice(0, 3)));
+      const base = i < 4 ? 2500 : i < 8 ? 2000 : 1500;
+      const flashMs = base + Math.max(0, w.en.length - 5) * 150;
+      return {
+        kind: 'look',
+        say: w.en,                       // only spoken if the answer is wrong
+        flashMs,
+        instruction: 'Read the word quickly!',
+        instructionJp: 'すばやくよもう！',
+        instruction2: 'Which word did you see?',
+        instruction2Jp: 'どのことばだった？',
+        prompt: `<div class="prompt-word">${w.en}</div>`,
+        choices, answer: w.en,
+        reveal: w.en + (w.jp ? ` (${w.jp})` : ''),
+        weak: weakWord(w)
+      };
+    });
+  }
+
   window.RQ_STAGES = {
     v1: letterFriends,
     v2: soundMatch,
     v3: firstSounds,
-    v4: buildWord
-    // v5 Quick Words ... arrives in the next step
+    v4: buildWord,
+    v5: quickWords
+    // v6 Picture Words ... arrives in the next step
   };
   window.RQStageHelpers = { shuffle, makeChoices, LETTER_SAY, ABC };
 })();

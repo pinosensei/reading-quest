@@ -66,6 +66,7 @@
     const jp = S.get().settings.jpHints;
     run.locked = false;
     run.missedThis = false;
+    clearTimeout(run.flashTimer);
 
     $('play-count').textContent = `${run.index + 1} / ${run.questions.length}`;
     $('play-bar-fill').style.width = (run.index / run.questions.length) * 100 + '%';
@@ -90,6 +91,23 @@
       $('play-choices').className = 'play-choices' + (q.big ? ' big' : '') + (q.pics ? ' pics' : '');
       $('play-choices').innerHTML = q.choices.map((c) =>
         `<button class="choice-btn" data-value="${APP.escapeHTML(c)}">${APP.escapeHTML(c)}</button>`).join('');
+    }
+
+    // Flash mode (Quick Words): show the word for a short time, then hide it
+    if (q.flashMs) {
+      run.locked = true;
+      $('play-choices').classList.add('waiting');
+      $('play-prompt').insertAdjacentHTML('beforeend',
+        `<div class="flash-timer"><i style="animation-duration:${q.flashMs}ms"></i></div>`);
+      const myRun = run;
+      run.flashTimer = setTimeout(() => {
+        if (run !== myRun) return;
+        $('play-prompt').innerHTML = '<div class="prompt-word hidden-word">？</div>';
+        $('play-instruction').textContent = q.instruction2 || q.instruction;
+        $('play-instruction-jp').textContent = jp ? q.instruction2Jp || '' : '';
+        $('play-choices').classList.remove('waiting');
+        run.locked = false;
+      }, q.flashMs);
     }
 
     // little pop-in animation
@@ -127,6 +145,7 @@
       setTimeout(() => {
         right.classList.add('show-answer');
         const shown = q.reveal || q.answer;
+        if (q.flashMs) $('play-prompt').innerHTML = `<div class="prompt-word">${APP.escapeHTML(q.answer)}</div>`;
         $('play-feedback').textContent = `The answer is "${shown}". こたえは「${shown}」`;
         $('play-feedback').className = 'play-feedback bad';
         if (q.say) APP.speak(q.say);
@@ -231,7 +250,7 @@
   $('btn-listen').onclick = () => { const q = run && run.questions[run.index]; if (q && q.say) APP.speak(q.say); };
   $('btn-quit').onclick = async () => {
     const ok = await APP.confirmBox('Quit this stage? Your answers will not be saved.\nステージをやめますか？');
-    if (ok) { run = null; APP.openRegion(); }
+    if (ok) { if (run) clearTimeout(run.flashTimer); run = null; APP.openRegion(); }
   };
   $('btn-retry').onclick = () => start(run.region.id, run.stage.id);
   $('btn-next-stage').onclick = () => {

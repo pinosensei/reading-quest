@@ -532,3 +532,20 @@ h2 small, .region-head h2 small { display: block; margin-top: 2px; }
   .tile { width: 54px; height: 58px; font-size: 32px; }
   .build-slots { gap: 6px; } .build-tiles { gap: 8px; }
 }
+
+/* ---------- Step 5: Quick Words (flash) ---------- */
+.play-prompt:has(.flash-timer) { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.flash-timer { width: min(260px, 70%); height: 10px; border-radius: 99px; background: #EFE5D3; overflow: hidden; }
+.flash-timer i {
+  display: block; height: 100%; width: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--region-color, #F5A623), #FFD877);
+  animation-name: flashDown; animation-timing-function: linear; animation-fill-mode: forwards;
+}
+@keyframes flashDown { to { width: 0; } }
+.prompt-word.hidden-word { color: var(--region-color, #F5A623); min-width: 160px; }
+.play-choices.waiting { visibility: hidden; }
+.play-choices:not(.big):not(.pics):not(.build) .choice-btn { font-size: 1.6em; min-height: 80px; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .play-choices:not(.big):not(.pics):not(.build) .choice-btn { font-size: 1.25em; min-height: 70px; }
+  .prompt-word { font-size: 44px; padding: 8px 18px; overflow-wrap: anywhere; }
+}
