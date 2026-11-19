@@ -381,3 +381,107 @@ h2 small, .region-head h2 small { display: block; margin-top: 2px; }
 }
 @media (max-width: 1200px) { .game-tab span { display: none; } .game-tab { padding: 0 12px; } }
 .swipe-hint { white-space: nowrap; }
+
+/* =========================================================
+   Play screen + Result screen (Step 2)
+   ========================================================= */
+#screen-play, #screen-result {
+  background:
+    radial-gradient(circle at 15% 10%, color-mix(in srgb, var(--region-color, #F5A623) 22%, transparent) 0 180px, transparent 181px),
+    radial-gradient(circle at 90% 90%, #DCEBFF 0 200px, transparent 201px),
+    var(--bg);
+}
+.play-bar { width: min(820px, 100%); display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.round-btn.light { background: var(--card); border: 2px solid var(--line); color: var(--ink); font-weight: 900; flex: none; }
+.play-progress { flex: 1; height: 16px; background: #EFE5D3; border-radius: 99px; overflow: hidden; }
+.play-progress i {
+  display: block; height: 100%; width: 0; border-radius: 99px; transition: width .4s;
+  background: linear-gradient(90deg, var(--region-color, #F5A623), #FFD877);
+}
+.play-count { font-weight: 900; min-width: 56px; text-align: right; }
+
+.play-card {
+  width: min(820px, 100%); background: var(--card); border-radius: 28px; box-shadow: var(--shadow);
+  padding: 22px 22px 26px; text-align: center; border-top: 8px solid var(--region-color, #F5A623);
+}
+.play-card.pop { animation: popIn .28s ease-out; }
+@keyframes popIn { from { transform: scale(.96); opacity: .4; } to { transform: none; opacity: 1; } }
+.play-stage-name { margin: 0; font-weight: 900; color: var(--region-color, #F5A623); letter-spacing: .3px; }
+.play-instruction { margin: 6px 0 0; font-size: 1.5em; }
+.play-instruction-jp { margin: 2px 0 0; min-height: 1.3em; color: var(--ink-soft); font-family: 'M PLUS Rounded 1c', sans-serif; font-weight: 700; }
+
+.play-prompt { min-height: 140px; display: grid; place-items: center; margin: 12px 0 6px; }
+.prompt-letter {
+  font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 700; font-size: 120px; line-height: 1;
+  width: 170px; height: 170px; display: grid; place-items: center; border-radius: 32px;
+  background: color-mix(in srgb, var(--region-color, #F5A623) 14%, white); color: var(--ink);
+}
+.prompt-ear { font-size: 96px; animation: wiggle 1.6s ease-in-out infinite; }
+@keyframes wiggle { 50% { transform: rotate(-8deg) scale(1.05); } }
+.prompt-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.prompt-row { font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 700; font-size: 64px; align-items: center; }
+.prompt-row .gap {
+  display: inline-grid; place-items: center; width: 80px; height: 86px; margin: 0 6px; border-radius: 18px;
+  border: 4px dashed var(--region-color, #F5A623); color: var(--region-color, #F5A623);
+  animation: blink 1.4s ease-in-out infinite;
+}
+@keyframes blink { 50% { opacity: .45; } }
+
+.listen-btn {
+  font: inherit; font-weight: 900; font-size: 1.1em; border: none; cursor: pointer;
+  background: #EAF2FD; color: #245A9E; border-radius: 999px; padding: 10px 22px; min-height: 52px;
+  box-shadow: 0 3px 0 #C9DCF5; margin-bottom: 8px;
+}
+.listen-btn:active { transform: translateY(2px); }
+
+.play-choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }
+.play-choices.big { grid-template-columns: repeat(4, 1fr); }
+.choice-btn {
+  font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 700; font-size: 1.3em;
+  min-height: 72px; border-radius: 18px; cursor: pointer; color: var(--ink);
+  background: var(--card); border: 3px solid var(--line); box-shadow: 0 4px 0 var(--line);
+  transition: transform .08s, background .15s; touch-action: manipulation;
+}
+.play-choices.big .choice-btn { font-size: 54px; min-height: 104px; }
+.choice-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--line); }
+.choice-btn.correct, .choice-btn.show-answer { background: #E3F7EC; border-color: var(--good); box-shadow: 0 4px 0 #9BD9B6; color: #17703F; }
+.choice-btn.correct { animation: bounce .4s; }
+.choice-btn.wrong { background: #FDECEC; border-color: var(--danger); box-shadow: 0 4px 0 #F6C9CA; color: var(--danger); animation: shake .35s; }
+@keyframes bounce { 40% { transform: scale(1.08); } }
+@keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+.play-feedback { min-height: 1.6em; margin: 14px 0 0; font-weight: 900; font-size: 1.15em; }
+.play-feedback.good { color: var(--good); }
+.play-feedback.bad { color: var(--danger); }
+
+/* result */
+#screen-result { justify-content: center; }
+.result-card {
+  width: min(520px, 100%); background: var(--card); border-radius: 28px; box-shadow: var(--shadow);
+  padding: 26px 24px; text-align: center; border-top: 8px solid var(--region-color, #F5A623);
+}
+.result-title { margin: 4px 0 0; font-size: 2em; }
+.result-title small { display: block; font-size: .5em; }
+.result-stars { margin: 10px 0 4px; display: flex; justify-content: center; gap: 8px; }
+.big-star { font-size: 72px; color: #E8DDCB; line-height: 1; }
+.big-star.on { color: var(--star); text-shadow: 0 4px 0 #E0A800; animation: starIn .5s both; }
+@keyframes starIn { from { transform: scale(0) rotate(-40deg); } 70% { transform: scale(1.25); } to { transform: scale(1); } }
+.result-detail { font-weight: 800; color: var(--ink-soft); }
+.result-coins {
+  display: inline-block; font-weight: 900; font-size: 1.3em; background: #FFF4D6;
+  padding: 8px 20px; border-radius: 999px; margin-bottom: 18px;
+}
+.result-buttons { display: grid; gap: 10px; }
+
+@media (max-width: 600px) {
+  .play-choices.big { grid-template-columns: repeat(2, 1fr); }
+  .play-choices.big .choice-btn { font-size: 46px; min-height: 92px; }
+  .prompt-letter { font-size: 96px; width: 140px; height: 140px; }
+  .prompt-row { font-size: 48px; }
+  .prompt-row .gap { width: 62px; height: 68px; }
+  .play-instruction { font-size: 1.25em; }
+  .play-prompt { min-height: 110px; }
+  .big-star { font-size: 60px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prompt-ear, .prompt-row .gap, .big-star.on, .choice-btn { animation: none !important; }
+}
