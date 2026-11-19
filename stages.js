@@ -212,7 +212,6 @@
       return {
         kind: opts.sound ? 'listen' : 'look',
         say: w.en,
-        sayOnCorrect: opts.sound ? w.en : '',
         instruction: 'What is the first letter?',
         instructionJp: 'さいしょのもじはどれ？',
         prompt: `<div class="prompt-pic">${w.pic}</div>`,
