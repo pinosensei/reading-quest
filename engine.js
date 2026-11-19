@@ -20,14 +20,15 @@
     if (!S.get().settings.sound) return;
     try {
       audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      const notes = type === 'good' ? [660, 880] : type === 'win' ? [523, 659, 784, 1047] : [220, 180];
+      const notes = type === 'good' ? [660, 880] : type === 'win' ? [523, 659, 784, 1047]
+        : type === 'tick' ? [990] : [220, 180];
       notes.forEach((f, i) => {
         const o = audioCtx.createOscillator(), g = audioCtx.createGain();
         o.type = type === 'bad' ? 'square' : 'triangle';
         o.frequency.value = f;
         const t = audioCtx.currentTime + i * 0.11;
         g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(type === 'bad' ? 0.06 : 0.18, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(type === 'bad' ? 0.06 : type === 'tick' ? 0.08 : 0.18, t + 0.02);
         g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
         o.connect(g).connect(audioCtx.destination);
         o.start(t); o.stop(t + 0.2);
@@ -49,6 +50,7 @@
     const st = S.get();
     const questions = maker({
       sound: st.settings.sound && 'speechSynthesis' in window,
+      jpHints: st.settings.jpHints,
       level: (st.player && st.player.startLevel) || 'starter'
     });
     run = { region, stage, questions, index: 0, mistakes: 0, missed: [], locked: false };
@@ -76,9 +78,19 @@
     const canSay = q.kind === 'listen' && q.say;
     $('btn-listen').classList.toggle('hidden', !canSay);
 
-    $('play-choices').className = 'play-choices' + (q.big ? ' big' : '') + (q.pics ? ' pics' : '');
-    $('play-choices').innerHTML = q.choices.map((c) =>
-      `<button class="choice-btn" data-value="${APP.escapeHTML(c)}">${APP.escapeHTML(c)}</button>`).join('');
+    if (q.type === 'build') {
+      // Letter tiles: tap them in order to spell the word
+      run.built = 0;
+      $('play-choices').className = 'play-choices build';
+      $('play-choices').innerHTML =
+        `<div class="build-slots">${q.answer.split('').map(() => '<span class="slot"></span>').join('')}</div>
+         <div class="build-tiles">${q.tiles.map((t) =>
+           `<button class="tile" data-value="${APP.escapeHTML(t)}">${APP.escapeHTML(t)}</button>`).join('')}</div>`;
+    } else {
+      $('play-choices').className = 'play-choices' + (q.big ? ' big' : '') + (q.pics ? ' pics' : '');
+      $('play-choices').innerHTML = q.choices.map((c) =>
+        `<button class="choice-btn" data-value="${APP.escapeHTML(c)}">${APP.escapeHTML(c)}</button>`).join('');
+    }
 
     // little pop-in animation
     const card = document.querySelector('.play-card');
@@ -120,6 +132,52 @@
         if (q.say) APP.speak(q.say);
       }, 350);
       setTimeout(next, 1900);
+    }
+  }
+
+  // ---------- letter tiles (Build a Word) ----------
+  function countMistake(q) {
+    if (run.missedThis) return;
+    run.missedThis = true;
+    run.mistakes++;
+    if (q.weak) run.missed.push(q.weak);
+  }
+  function buildTap(tile) {
+    if (!run || run.locked) return;
+    const q = run.questions[run.index];
+    const want = q.answer[run.built];
+    document.querySelectorAll('.tile.hint').forEach((t) => t.classList.remove('hint'));
+
+    if (tile && tile.dataset.value === want) {
+      const slot = document.querySelectorAll('.build-slots .slot')[run.built];
+      slot.textContent = want;
+      slot.classList.add('filled');
+      tile.classList.add('used');
+      tile.disabled = true;
+      run.built++;
+      beep('tick');
+      $('play-feedback').textContent = '';
+      if (run.built === q.answer.length) {
+        run.locked = true;
+        document.querySelectorAll('.build-slots .slot').forEach((sl) => sl.classList.add('done'));
+        beep('good');
+        const praise = ['Great!', 'Nice spelling!', 'Good job!', 'Perfect!', 'You did it!'][Math.floor(Math.random() * 5)];
+        $('play-feedback').textContent = (run.missedThis ? 'OK!' : praise) + ' ⭕ ' + q.answer;
+        $('play-feedback').className = 'play-feedback good';
+        setTimeout(next, 1100);
+      }
+    } else {
+      // wrong letter: shake, count one mistake for this word, then glow the right tile as a hint
+      if (tile) {
+        tile.classList.add('wrong');
+        setTimeout(() => tile.classList.remove('wrong'), 450);
+      }
+      beep('bad');
+      countMistake(q);
+      $('play-feedback').textContent = 'Try again! もういちど！';
+      $('play-feedback').className = 'play-feedback bad';
+      const right = [...document.querySelectorAll('.tile:not(.used)')].find((t) => t.dataset.value === want);
+      if (right) setTimeout(() => right.classList.add('hint'), 450);
     }
   }
 
@@ -168,6 +226,7 @@
   // ---------- buttons ----------
   $('play-choices').onclick = (e) => {
     const b = e.target.closest('.choice-btn'); if (b) answer(b);
+    const t = e.target.closest('.tile'); if (t && !t.disabled) buildTap(t);
   };
   $('btn-listen').onclick = () => { const q = run && run.questions[run.index]; if (q && q.say) APP.speak(q.say); };
   $('btn-quit').onclick = async () => {
@@ -188,6 +247,12 @@
   // Keyboard: 1-4 to answer (for PC)
   document.addEventListener('keydown', (e) => {
     if ($('screen-play').classList.contains('hidden')) return;
+    const q = run && run.questions[run.index];
+    if (q && q.type === 'build' && /^[a-z]$/i.test(e.key)) {   // PC: type the letters
+      const key = e.key.toLowerCase();
+      buildTap([...document.querySelectorAll('.tile:not(.used)')].find((t) => t.dataset.value === key) || null);
+      return;
+    }
     const n = parseInt(e.key, 10);
     const btns = document.querySelectorAll('.choice-btn');
     if (n >= 1 && n <= btns.length) answer(btns[n - 1]);

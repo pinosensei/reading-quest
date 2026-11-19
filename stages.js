@@ -222,11 +222,52 @@
     });
   }
 
+  // ---------- Stage 4: Build a Word ----------
+  // See the picture (and hear the word) -> tap letter tiles in order.
+  // Q1–4: 3 letters, Q5–8: 4 letters, Q9–12: 5–6 letters.
+  // Extra wrong tiles: 1 for short words, 2 for longer ones.
+  function buildWord(opts) {
+    const seenPic = new Set();
+    const words = window.RQWords.list('starter').filter((w) => {
+      if (!PIC_THEMES.includes(w.theme) || !w.pic || !/^[a-z]{3,6}$/.test(w.en)) return false;
+      if (seenPic.has(w.pic)) return false;
+      seenPic.add(w.pic);
+      return true;
+    });
+    const byLen = (min, max) => words.filter((w) => w.en.length >= min && w.en.length <= max);
+    const picked = []
+      .concat(shuffle(byLen(3, 3)).slice(0, 4))
+      .concat(shuffle(byLen(4, 4)).slice(0, 4))
+      .concat(shuffle(byLen(5, 6)).slice(0, 4));
+
+    return picked.map((w) => {
+      const letters = w.en.split('');
+      const extraCount = w.en.length <= 3 ? 1 : 2;
+      const extras = shuffle(ABC.map((x) => x.toLowerCase()).filter((x) => !letters.includes(x))).slice(0, extraCount);
+      let tiles = shuffle(letters.concat(extras));
+      // make sure the tiles don't already spell the word in order
+      while (tiles.join('').startsWith(w.en)) tiles = shuffle(tiles);
+      return {
+        type: 'build',
+        kind: opts.sound ? 'listen' : 'look',
+        say: w.en,
+        instruction: 'Spell the word!',
+        instructionJp: 'もじをならべて、たんごをつくろう。',
+        prompt: `<div class="prompt-pic">${w.pic}</div>` +
+          (opts.jpHints ? `<div class="prompt-jp">${w.jp}</div>` : ''),
+        answer: w.en,
+        tiles,
+        weak: weakWord(w)
+      };
+    });
+  }
+
   window.RQ_STAGES = {
     v1: letterFriends,
     v2: soundMatch,
-    v3: firstSounds
-    // v4 Build a Word ... arrives in the next step
+    v3: firstSounds,
+    v4: buildWord
+    // v5 Quick Words ... arrives in the next step
   };
   window.RQStageHelpers = { shuffle, makeChoices, LETTER_SAY, ABC };
 })();

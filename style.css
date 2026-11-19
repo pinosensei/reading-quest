@@ -503,3 +503,32 @@ h2 small, .region-head h2 small { display: block; margin-top: 2px; }
   .prompt-pic { font-size: 88px; width: 140px; height: 140px; }
   .prompt-word { font-size: 54px; }
 }
+
+/* ---------- Step 4: Build a Word (letter tiles) ---------- */
+.prompt-jp { margin-top: 6px; font-family: 'M PLUS Rounded 1c', sans-serif; font-weight: 700; color: var(--ink-soft); }
+.play-prompt:has(.prompt-jp) { display: flex; flex-direction: column; align-items: center; }
+.play-choices.build { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.build-slots { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.slot {
+  width: 62px; height: 72px; border-radius: 14px; display: grid; place-items: center;
+  border: 3px dashed #D9CBB2; background: #FFFBF3;
+  font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 700; font-size: 44px; color: var(--ink);
+}
+.slot.filled { border-style: solid; border-color: var(--region-color, #F5A623); background: #fff; animation: bounce .3s; }
+.slot.done { border-color: var(--good); background: #E3F7EC; color: #17703F; }
+.build-tiles { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.tile {
+  width: 66px; height: 70px; border-radius: 16px; cursor: pointer; touch-action: manipulation;
+  font-family: 'Fredoka', 'Nunito', sans-serif; font-weight: 700; font-size: 40px; color: var(--ink);
+  background: #FFF4D6; border: 3px solid #EBCB7E; box-shadow: 0 4px 0 #D9B25E;
+}
+.tile:active { transform: translateY(3px); box-shadow: 0 1px 0 #D9B25E; }
+.tile.used { visibility: hidden; }
+.tile.wrong { background: #FDECEC; border-color: var(--danger); box-shadow: 0 4px 0 #F6C9CA; color: var(--danger); animation: shake .35s; }
+.tile.hint { animation: glow 1s ease-in-out infinite; border-color: var(--good); }
+@keyframes glow { 50% { box-shadow: 0 4px 0 #9BD9B6, 0 0 0 6px rgba(46, 173, 107, .25); } }
+@media (max-width: 600px) {
+  .slot { width: 46px; height: 56px; font-size: 32px; }
+  .tile { width: 54px; height: 58px; font-size: 32px; }
+  .build-slots { gap: 6px; } .build-tiles { gap: 8px; }
+}
